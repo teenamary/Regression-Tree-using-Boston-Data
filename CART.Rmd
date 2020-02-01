@@ -1,0 +1,163 @@
+---
+title: "Lab 7 - Classification and Regression Tree"
+author: "Teena Mary 1948058"
+date: "1/23/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here we are doing analysis on the Boston dataset. The classification and regression tree concepts are studied using the dataset.The following are the details of the dataset:
+i) LON and LAT are the longitude and latitude of the center of the census tract.
+ii) MEDV is the median value of owner-occupied homes, measured in thousands of dollars.
+iii) CRIM is the per capita crime rate.
+iv) ZN is related to how much of the land is zoned for large residential properties.
+v) INDUS is the proportion of the area used for industry.
+vi) CHAS is 1 if a census tract is next to the Charles River else 0
+vii) NOX is the concentration of nitrous oxides in the air, a measure of air pollution.
+viii) RM is the average number of rooms per dwelling.
+ix) AGE is the proportion of owner-occupied units built before 1940.
+x) DIS is a measure of how far the tract is from centres of employment in Boston.
+xi) RAD is a measure of closeness to important highways.
+xii) TAX is the property tax per $10,000 of value.
+xiii) PTRATIO is the pupil to teacher ratio by town. 
+
+MEDV is the output /target variable i.e price of the house to be predicted
+```{r}
+boston=read.csv('C:/Users/admin/Desktop/boston.csv.txt',header=TRUE)
+head(boston,5)
+```
+
+```{r}
+summary(boston)
+str(boston)
+```
+
+INFERENCES:
+The dataset consists of 16 variables with 506 observations.Here, the target variable is the MEDV. We need to predict the price of the houses in the region. So, first we need to understand the distribution of the houses according to different regions. So, let us plot the latitude and longitude for each of the data points.
+
+```{r}
+# Plot observations
+plot(boston$LON, boston$LAT, main="Distribution of houses across Latitude and Longitude",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="Dark Green")
+
+```
+
+INFERENCES:
+Here, we can see that relatively many houses are concentrated around the central part, which corresponds to the Boston city and a few other cities. Since, we also have the Charles river attribute(CHAS), we want to also show all the points that lie along the Charles River in a blue colour.
+
+```{r}
+plot(boston$LON, boston$LAT, main="Distribution of houses across Latitude and Longitude",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="Dark Green")
+points(boston$LON[boston$CHAS==1], boston$LAT[boston$CHAS==1], col="blue", pch=19)
+```
+
+
+We will see how the pollution affects the prices. The variable NOX gives the pollution index.
+
+```{r}
+summary(boston$NOX)
+```
+
+INFERENCES:
+We can the that the average amount of pollution is around the value 0.55. We will see which areas have the above average pollution.
+
+```{r}
+plot(boston$LON, boston$LAT, main="Highlighting area with highest pollution",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="blue")
+points(boston$LON[boston$NOX>=0.55],boston$LAT[boston$NOX>=0.55], col="dark green", pch=20)
+```
+
+INFERENCES:
+We can see that the pollution is high in the regions where the population is maximum.Now let us look at how the prices vary over the area as well. We can do this with the help of MEDV variable. 
+
+```{r}
+plot(boston$LON, boston$LAT, main="Variation of prices across regions",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="black")
+summary(boston$MEDV)
+points(boston$LON[boston$MEDV>=21.2], boston$LAT[boston$MEDV>=21.2],col="red",pch=20)
+```
+
+INFERENCES:
+So what we see now are all the census tracts with above-average housing prices in red.However, the census tracts of above-average and below-average are mixed in between each other.But there are some patterns.For example, the dense black bit in the middle corresponds to most of the city of Boston, especially the southern parts of the city.So there’s definitely some structure to it, but it’s certainly not simple in relation to latitude and longitude at least.
+
+APPLYING LINEAR REGRESSION TO THE MODEL
+
+Since the variable MEVD is continuous, we can apply linear regression on the dataset. We first plot the scatter plot between latitude and house prices as well as longitude and house prices.
+
+```{r}
+plot(boston$LAT, boston$MEDV,main="Variation of prices across Latitude",xlab="Latitude",ylab="Prices",pch=20,cex.main=1,col.main="Red",col="black")
+plot(boston$LON, boston$MEDV,main="Variation of prices across Longitude",xlab="Longitude",ylab="Prices",pch=20,cex.main=1,col.main="Red",col="black")
+```
+
+INFERENCES:
+We can see that the census tracts doesn't follow any linear trend.
+
+LINEAR REGRESSION MODEL
+
+```{r}
+reg_mod=lm(MEDV~LAT+LON,data=boston)
+summary(reg_mod)
+```
+
+INFERENCES:
+
+The linear regression model is given by 'Price = 8.046*(LAT) - 40.268*(LON)-3178.472'.
+
+i) The residuals aren't symmetrically distributed about the mean zero. There is a positive skewness for the residuals.
+ii) The latitude does not have significant effect on the prices of the houses, since there aren't any significance stars against it. But, longitude is significant as it has three significant stars.
+iii) The R^2 value of the model is 0.1072, which shows that the linear regression model is  not a good fit for the given dataset.
+
+Now, we will visualise the linear regression model. So we shall plot the census tracts again and then plot the above-median house prices with bright red dots. The red dots will tell us the actual positions in Boston where houses are costly. We shall then test the same fact with how the Linear Regression model predicts, using  a blue coloured '(' sign.
+
+```{r}
+plot(boston$LON, boston$LAT, main="Variation of Prices of Houses across Latitude and Longitude",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="Dark Green")
+
+points(boston$LON[boston$MEDV>=21.2], boston$LAT[boston$MEDV>=21.2], col="red", pch=20)
+
+#Linear Regression Model predictions
+points(boston$LON[reg_mod$fitted.values >= 21.2], boston$LAT[reg_mod$fitted.values >= 21.2], col="blue", pch=40)
+```
+
+INFERENCES:
+Here, we can see that the houses that the regression model predicts to be costly is conentrated more towards the left side of the graph and the model completly ignores the data points on the right side. This is mainly because the latitude doesn't have any significance in the model. Also, there is a clear vertical separation that the linear model defines for the costly houses in the city, which is not true in the real case. So, we clearly see that the regression model doesn't do a good job in predicting the prices of the houses in the boston city. 
+
+APPLYING REGRESSION TREE:
+```{r}
+# Load CART packages
+#install rpart package
+library(rpart)
+
+#install.packages("rpart.plot")
+library(rpart.plot)
+```
+
+```{r}
+# CART model
+reg_tree = rpart(MEDV ~ LAT + LON, data=boston)
+# Plot the tree using prp command defined in rpart.plot package
+prp(reg_tree)
+```
+
+INFERENCES:
+Now, we will plot the regression tree. So we shall plot the census tracts again and then plot the above-median house prices with bright red dots. The red dots will tell us the actual positions in Boston where houses are costly. We shall then test the same fact with how the Regression tree model predicts, using  a blue coloured '(' sign.
+
+```{r}
+plot(boston$LON, boston$LAT, main="Variation of Prices of Houses across Latitude and Longitude",xlab="Longitude",ylab="Latitude",pch=20,cex.main=1.1,col.main="Red",col="Dark Green")
+
+points(boston$LON[boston$MEDV>=21.2], boston$LAT[boston$MEDV>=21.2], col="red", pch=20)
+
+#Regression Tree Model predictions
+fittedvalues = predict(reg_tree)
+points(boston$LON[fittedvalues>21.2],boston$LAT[fittedvalues>=21.2], col="blue", pch=1)
+```
+
+INFERENCES:
+Here, the data points coloured in blue actually shows the points that the model predicted to be costly in the Boston city. We can see that the regression tree model has done a relatively better job in fitting the data as compared to the linear regression model. But the model overfits the data a bit. We can solve this by changing the 'minbucket' size. 
+
+```{r}
+reg_tree1 = rpart(MEDV ~ LAT + LON, data=boston, minbucket=50)
+plot(reg_tree1)
+text(reg_tree1)
+```
+
+INFERENCES:
+This has much fewer splits as compared to the previous regression tree and is more interpretable.
